@@ -1,0 +1,22 @@
+ext {
+    toolVersions = [
+            android: [
+                    buildTools: '26.0.3',
+                    compileSdk: 28,
+                    targetSdk : 28,
+                    minSdk    : 21
+            ]
+    ]
+
+    deps = [
+            support: [
+                    appCompat          : 'androidx.appcompat:appcompat:1.0.2',
+                    lifecycle          : 'androidx.lifecycle:lifecycle-viewmodel:2.0.0',
+                    lifecycleExtensions: 'android.arch.lifecycle:extensions:2.0.0',
+                    liveData           : 'androidx.lifecycle:lifecycle-livedata:2.0.0',
+                    viewModel          : 'android.arch.lifecycle:viewmodel: 2.0.0',
+                    viewModelSavedState: 'androidx.lifecycle:lifecycle-viewmodel-savedstate:1.0.0-alpha01'
+            ]
+    ]
+}
+
