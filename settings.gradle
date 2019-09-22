@@ -1,0 +1,2 @@
+include ':app', ':mvi-core', ':mvi-android'
+rootProject.name='MVI Demo'
