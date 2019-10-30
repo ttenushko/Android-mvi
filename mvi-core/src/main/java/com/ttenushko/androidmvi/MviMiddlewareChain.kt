@@ -30,7 +30,7 @@ internal class MviMiddlewareChain<A, S, E>(middlewares: List<MviMiddleware<A, S,
 
     private class ChainItem<A, S, E>(
         private val middleware: MviMiddleware<A, S, E>,
-        private var chainData: ChainData<A, S, E>,
+        private val chainData: ChainData<A, S, E>,
         private val next: ChainItem<A, S, E>?
     ) : MviMiddleware.Chain<A, S, E> {
 

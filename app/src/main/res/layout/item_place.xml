@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dip"
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical"
+    app:cardBackgroundColor="@color/secondaryWindowBackground"
+    app:cardCornerRadius="4dp"
+    app:cardElevation="0dip">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dip"
+        android:layout_marginTop="16dip"
+        android:layout_marginEnd="16dip"
+        android:layout_marginBottom="16dip"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/placeTitle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="@android:style/TextAppearance.Medium"
+            android:textColor="@color/textColorPrimary"
+            tools:text="Title" />
+
+        <TextView
+            android:id="@+id/placeLocation"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="6dip"
+            android:textAppearance="@android:style/TextAppearance.Small"
+            android:textColor="@color/textColorSecondary"
+            tools:text="location" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

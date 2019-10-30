@@ -7,8 +7,10 @@ import androidx.lifecycle.ViewModel
 import java.util.concurrent.atomic.AtomicInteger
 
 
-@Suppress("LeakingThis")
-abstract class MviStoreViewModel<I, S, E>(private var savedState: Bundle?) : ViewModel(), Runnable {
+class MviStoreViewModel<I, S, E>(
+    private val mviStoreCreator: MviStoreCreator<I, S, E>,
+    savedState: Bundle?
+) : ViewModel(), Runnable {
 
     companion object {
         private const val STATUS_UNINITIALIZED = 0
@@ -19,7 +21,7 @@ abstract class MviStoreViewModel<I, S, E>(private var savedState: Bundle?) : Vie
     private val status = AtomicInteger(STATUS_UNINITIALIZED)
     private val stateLiveData = MutableLiveData<S>()
     private val eventsLiveData = MutableLiveDataQueue<E>()
-    private lateinit var mviStore: MviStore<I, S, E>
+    private val mviStore: MviStore<I, S, E> = mviStoreCreator.createMviStore(savedState)
     private val stateChangedListener = object : MviStore.StateChangedListener<S> {
         override fun onStateChanged(state: S) {
             stateLiveData.value = state
@@ -35,9 +37,8 @@ abstract class MviStoreViewModel<I, S, E>(private var savedState: Bundle?) : Vie
     val events: LiveData<E>
         get() = eventsLiveData
 
-    final override fun run() {
+    override fun run() {
         if (status.compareAndSet(STATUS_UNINITIALIZED, STATUS_RUNNING)) {
-            mviStore = createMviStore(savedState).also { savedState = null }
             mviStore.addStateChangedListener(stateChangedListener)
             mviStore.addEventListener(eventListener)
             stateLiveData.value = mviStore.state
@@ -45,7 +46,7 @@ abstract class MviStoreViewModel<I, S, E>(private var savedState: Bundle?) : Vie
         }
     }
 
-    final override fun onCleared() {
+    override fun onCleared() {
         super.onCleared()
         if (STATUS_RUNNING == status.getAndSet(STATUS_CLOSED)) {
             mviStore.removeStateChangedListener(stateChangedListener)
@@ -60,13 +61,8 @@ abstract class MviStoreViewModel<I, S, E>(private var savedState: Bundle?) : Vie
     }
 
     fun saveState(outState: Bundle) {
-        saveState(mviStore.state, outState)
-    }
-
-    abstract fun createMviStore(savedState: Bundle?): MviStore<I, S, E>
-
-    open fun saveState(state: S, outState: Bundle) {
-
+        checkRunning()
+        mviStoreCreator.saveState(mviStore, outState)
     }
 
     private fun checkRunning() {

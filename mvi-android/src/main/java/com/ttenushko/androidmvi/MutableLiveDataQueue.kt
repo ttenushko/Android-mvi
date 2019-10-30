@@ -1,13 +1,12 @@
 package com.ttenushko.androidmvi
 
-import androidx.lifecycle.MutableLiveData
 import java.util.*
 
 /**
  * This is special LiveData implementation that consumes all the values in inactive state and once becomes active,
  * sends remembered values to a subscriber(s)
  */
-internal class MutableLiveDataQueue<T> : MutableLiveData<T>() {
+internal class MutableLiveDataQueue<T> : SingleLiveEvent<T>() {
 
     private val values: Queue<T> = LinkedList()
 
