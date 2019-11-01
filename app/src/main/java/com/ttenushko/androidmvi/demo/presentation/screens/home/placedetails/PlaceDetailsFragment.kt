@@ -4,23 +4,26 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
+import com.squareup.picasso.Picasso
 import com.ttenushko.androidmvi.MviStoreViewModel
-import com.ttenushko.androidmvi.demo.App
 import com.ttenushko.androidmvi.demo.R
 import com.ttenushko.androidmvi.demo.presentation.base.BaseMviFragment
 import com.ttenushko.androidmvi.demo.presentation.base.DefaultErrorHandler
+import com.ttenushko.androidmvi.demo.presentation.di.utils.findComponentDependencies
 import com.ttenushko.androidmvi.demo.presentation.dialogs.DialogFragmentClickListener
 import com.ttenushko.androidmvi.demo.presentation.dialogs.SimpleDialogFragment
 import com.ttenushko.androidmvi.demo.presentation.screens.home.Router
+import com.ttenushko.androidmvi.demo.presentation.screens.home.placedetails.di.DaggerPlaceDetailsFragmentComponent
+import com.ttenushko.androidmvi.demo.presentation.screens.home.placedetails.di.PlaceDetailsFragmentModule
 import com.ttenushko.androidmvi.demo.presentation.screens.home.placedetails.mvi.PlaceDetailsStore.*
 import com.ttenushko.androidmvi.demo.presentation.utils.MviEventLogger
 import com.ttenushko.androidmvi.demo.presentation.utils.ValueUpdater
 import com.ttenushko.androidmvi.demo.presentation.utils.isDialogShown
 import com.ttenushko.androidmvi.demo.presentation.utils.showDialog
 import kotlinx.android.synthetic.main.fragment_place_details.*
+import javax.inject.Inject
 
 class PlaceDetailsFragment :
     BaseMviFragment<Intention, State, Event>(), DialogFragmentClickListener {
@@ -35,14 +38,19 @@ class PlaceDetailsFragment :
             }
     }
 
-    private val eventLogger = MviEventLogger<Event>("mvi")
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject
+    lateinit var picasso: Picasso
+    @Inject
+    lateinit var eventLogger: MviEventLogger<Any>
     private var menuItemDelete: MenuItem? = null
     private val menuItemDeleteVisibilityUpdater = ValueUpdater(false) { isVisible ->
         menuItemDelete?.isVisible = isVisible
     }
     private val weatherIconUrl = ValueUpdater("") { iconUrl ->
         if (iconUrl.isNotBlank()) {
-            App.instance.picasso.load(iconUrl).into(icon)
+            picasso.load(iconUrl).into(icon)
         } else {
             icon.setImageBitmap(null)
         }
@@ -53,8 +61,12 @@ class PlaceDetailsFragment :
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        DaggerPlaceDetailsFragmentComponent.builder()
+            .placeDetailsFragmentDependencies(findComponentDependencies())
+            .placeDetailsFragmentModule(PlaceDetailsFragmentModule(arguments!!.getLong(ARG_PLACE_ID)))
+            .build()
+            .inject(this)
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -144,15 +156,6 @@ class PlaceDetailsFragment :
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun getMviStoreViewModel(savedState: Bundle?):
-            MviStoreViewModel<Intention, State, Event> {
-        return ViewModelProviders.of(
-            this,
-            MviStoreViewModelProviderFactory(arguments!!.getLong(ARG_PLACE_ID), savedState)
-        ).get(MviStoreViewModel::class.java) as MviStoreViewModel<Intention, State, Event>
-    }
-
     override fun onDialogFragmentClick(
         dialogFragment: DialogFragment,
         dialog: DialogInterface,
@@ -168,13 +171,6 @@ class PlaceDetailsFragment :
     }
 
     @Suppress("UNCHECKED_CAST")
-    class MviStoreViewModelProviderFactory(
-        private val placeId: Long,
-        private val savedState: Bundle?
-    ) :
-        ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return MviStoreViewModel(PlaceDetailsStoreCreator(placeId), savedState) as T
-        }
-    }
+    override fun getMviStoreViewModel(): MviStoreViewModel<Intention, State, Event> =
+        ViewModelProviders.of(this, viewModelFactory)[PlaceDetailsFragmentViewModel::class.java]
 }

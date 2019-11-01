@@ -7,10 +7,7 @@ import androidx.lifecycle.ViewModel
 import java.util.concurrent.atomic.AtomicInteger
 
 
-class MviStoreViewModel<I, S, E>(
-    private val mviStoreCreator: MviStoreCreator<I, S, E>,
-    savedState: Bundle?
-) : ViewModel(), Runnable {
+abstract class MviStoreViewModel<I, S, E> : ViewModel() {
 
     companion object {
         private const val STATUS_UNINITIALIZED = 0
@@ -21,7 +18,7 @@ class MviStoreViewModel<I, S, E>(
     private val status = AtomicInteger(STATUS_UNINITIALIZED)
     private val stateLiveData = MutableLiveData<S>()
     private val eventsLiveData = MutableLiveDataQueue<E>()
-    private val mviStore: MviStore<I, S, E> = mviStoreCreator.createMviStore(savedState)
+    private lateinit var mviStore: MviStore<I, S, E>
     private val stateChangedListener = object : MviStore.StateChangedListener<S> {
         override fun onStateChanged(state: S) {
             stateLiveData.value = state
@@ -37,8 +34,9 @@ class MviStoreViewModel<I, S, E>(
     val events: LiveData<E>
         get() = eventsLiveData
 
-    override fun run() {
+    fun run(savedState: Bundle?) {
         if (status.compareAndSet(STATUS_UNINITIALIZED, STATUS_RUNNING)) {
+            mviStore = onCreateMviStore(savedState)
             mviStore.addStateChangedListener(stateChangedListener)
             mviStore.addEventListener(eventListener)
             stateLiveData.value = mviStore.state
@@ -62,8 +60,12 @@ class MviStoreViewModel<I, S, E>(
 
     fun saveState(outState: Bundle) {
         checkRunning()
-        mviStoreCreator.saveState(mviStore, outState)
+        onSaveState(mviStore, outState)
     }
+
+    abstract fun onCreateMviStore(savedState: Bundle?): MviStore<I, S, E>
+
+    abstract fun onSaveState(mviStore: MviStore<I, S, E>, outState: Bundle)
 
     private fun checkRunning() {
         when (status.get()) {

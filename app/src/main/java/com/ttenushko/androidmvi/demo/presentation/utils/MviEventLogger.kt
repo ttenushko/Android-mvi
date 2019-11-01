@@ -10,8 +10,8 @@ class MviEventLogger<E : Any>(private val tag: String) {
 
     fun log(event: E) {
         val date = Date()
-        Log.d(tag, "┌───→ Event: ${event.javaClass.simpleName} ${dateFormat.format(date)}")
-        Log.d(tag, "├─ Event      ► $event")
+        Log.d(tag, "┌───→ Event:  ${event.javaClass.simpleName} ${dateFormat.format(date)}")
+        Log.d(tag, "├─ Event        ► $event")
         Log.d(tag, "└────────────────────────────────────────────────────────────────────")
     }
 }

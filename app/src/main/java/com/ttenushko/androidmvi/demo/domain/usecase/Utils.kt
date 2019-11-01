@@ -1,9 +1,9 @@
 package com.ttenushko.androidmvi.demo.domain.usecase
 
 import com.ttenushko.androidmvi.demo.domain.utils.Cancellable
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.ProducerScope
-import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
 internal suspend fun CoroutineScope.awaitCancellation(block: () -> Unit = {}) {

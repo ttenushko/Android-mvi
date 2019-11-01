@@ -9,5 +9,5 @@ data class NetWeatherDescription(
     @field:SerializedName("icon") val icon: String
 ) {
     val iconUrl: String
-            get() = "http://openweathermap.org/img/wn/${icon}@2x.png"
+        get() = "http://openweathermap.org/img/wn/${icon}@2x.png"
 }

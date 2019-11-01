@@ -9,10 +9,16 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.ttenushko.androidmvi.demo.R
+import com.ttenushko.androidmvi.demo.di.dependency.ComponentDependenciesProvider
+import com.ttenushko.androidmvi.demo.di.dependency.HasComponentDependencies
+import com.ttenushko.androidmvi.demo.di.module.UseCaseModule
 import com.ttenushko.androidmvi.demo.presentation.base.BaseActivity
+import com.ttenushko.androidmvi.demo.presentation.di.utils.findComponentDependencies
+import com.ttenushko.androidmvi.demo.presentation.screens.home.di.DaggerHomeActivityComponent
+import javax.inject.Inject
 
 class HomeActivity(private val router: RouterImpl = RouterImpl()) : BaseActivity(),
-    Router by router {
+    HasComponentDependencies, Router by router {
 
     companion object {
         fun launch(context: Context) {
@@ -27,8 +33,20 @@ class HomeActivity(private val router: RouterImpl = RouterImpl()) : BaseActivity
         }
     }
 
+    @Suppress("ProtectedInFinal")
+    @Inject
+    override lateinit var dependencies: ComponentDependenciesProvider
+        protected set
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        DaggerHomeActivityComponent.builder()
+            .applicationDependencies(findComponentDependencies())
+            .useCaseModule(UseCaseModule())
+            .build()
+            .inject(this)
+
         setContentView(R.layout.activity_home)
         router.initialize(this)
     }

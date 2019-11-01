@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,19 +11,33 @@ import com.ttenushko.androidmvi.MviStoreViewModel
 import com.ttenushko.androidmvi.demo.R
 import com.ttenushko.androidmvi.demo.domain.weather.model.Place
 import com.ttenushko.androidmvi.demo.presentation.base.BaseMviFragment
+import com.ttenushko.androidmvi.demo.presentation.di.utils.findComponentDependencies
 import com.ttenushko.androidmvi.demo.presentation.screens.home.Router
 import com.ttenushko.androidmvi.demo.presentation.screens.home.common.PlaceAdapter
+import com.ttenushko.androidmvi.demo.presentation.screens.home.places.di.DaggerPlacesFragmentComponent
 import com.ttenushko.androidmvi.demo.presentation.screens.home.places.mvi.PlacesStore.*
 import com.ttenushko.androidmvi.demo.presentation.utils.MviEventLogger
 import com.ttenushko.androidmvi.demo.presentation.utils.isVisible
 import kotlinx.android.synthetic.main.fragment_places.*
 import kotlinx.android.synthetic.main.layout_places_content.*
+import javax.inject.Inject
 
 class PlacesFragment :
     BaseMviFragment<Intention, State, Event>() {
 
-    private val eventLogger = MviEventLogger<Event>("mvi")
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject
+    lateinit var eventLogger: MviEventLogger<Any>
     private var placeAdapter: PlaceAdapter? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        DaggerPlacesFragmentComponent.builder()
+            .placesFragmentDependencies(findComponentDependencies())
+            .build()
+            .inject(this)
+        super.onCreate(savedInstanceState)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -82,20 +95,6 @@ class PlacesFragment :
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun getMviStoreViewModel(savedState: Bundle?):
-            MviStoreViewModel<Intention, State, Event> {
-        return ViewModelProviders.of(
-            this,
-            MviStoreViewModelProviderFactory(savedState)
-        ).get(MviStoreViewModel::class.java) as MviStoreViewModel<Intention, State, Event>
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    class MviStoreViewModelProviderFactory(private val savedState: Bundle?) :
-        ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return MviStoreViewModel(PlacesFragmentStoreCreator(), savedState) as T
-        }
-    }
+    override fun getMviStoreViewModel(): MviStoreViewModel<Intention, State, Event> =
+        ViewModelProviders.of(this, viewModelFactory)[PlacesFragmentViewModel::class.java]
 }

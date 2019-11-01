@@ -2,35 +2,33 @@ package com.ttenushko.androidmvi.demo.presentation.screens.home.addplace
 
 import android.os.Bundle
 import com.ttenushko.androidmvi.*
-import com.ttenushko.androidmvi.demo.App
-import com.ttenushko.androidmvi.demo.domain.application.usecase.SavePlaceUseCaseImpl
-import com.ttenushko.androidmvi.demo.domain.weather.usecase.SearchPlaceUseCaseImpl
+import com.ttenushko.androidmvi.demo.domain.application.usecase.SavePlaceUseCase
+import com.ttenushko.androidmvi.demo.domain.weather.usecase.SearchPlaceUseCase
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.*
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.AddPlaceStore.*
 import com.ttenushko.androidmvi.demo.presentation.utils.MviLogger
 
-internal class AddPlaceStoreCreator(private val search: String) :
-    MviStoreCreator<Intention, State, Event> {
+internal class AddPlacesFragmentViewModel(
+    private val mviLogger: MviLogger<Action, State>,
+    private val search: String,
+    private val searchPlaceUseCase: SearchPlaceUseCase,
+    private val savePlaceUseCase: SavePlaceUseCase
+) : MviStoreViewModel<Intention, State, Event>() {
 
     companion object {
         private const val SEARCH = "search"
     }
 
-    override fun createMviStore(savedState: Bundle?): MviStore<Intention, State, Event> {
+    override fun onCreateMviStore(savedState: Bundle?): MviStore<Intention, State, Event> {
         val search = savedState?.getString(SEARCH) ?: search
         return MviStores.create(
             initialState = State(search, State.SearchResult.Success("", listOf()), false),
             bootstrapper = Bootstrapper(),
             middleware = listOf(
-                LoggingMiddleware(MviLogger("mvi")),
+                LoggingMiddleware(mviLogger),
                 MviPostProcessorMiddleware(listOf(SideEffects())),
-                SearchPlaceMiddleware(
-                    SearchPlaceUseCaseImpl(
-                        App.instance.weatherForecastRepository,
-                        300
-                    )
-                ),
-                AddPlaceMiddleware(SavePlaceUseCaseImpl(App.instance.applicationSettings))
+                SearchPlaceMiddleware(searchPlaceUseCase),
+                AddPlaceMiddleware(savePlaceUseCase)
             ),
             reducer = Reducer(),
             intentToActionTransformer = object : Transformer<Intention, Action> {
@@ -43,10 +41,8 @@ internal class AddPlaceStoreCreator(private val search: String) :
         )
     }
 
-    override fun saveState(
-        mviStore: MviStore<Intention, State, Event>,
-        outState: Bundle
-    ) {
+
+    override fun onSaveState(mviStore: MviStore<Intention, State, Event>, outState: Bundle) {
         outState.putString(SEARCH, mviStore.state.search)
     }
 }

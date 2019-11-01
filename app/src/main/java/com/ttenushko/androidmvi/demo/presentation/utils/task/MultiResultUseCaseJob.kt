@@ -2,7 +2,6 @@ package com.ttenushko.androidmvi.demo.presentation.utils.task
 
 import com.ttenushko.androidmvi.demo.domain.usecase.MultiResultUseCase
 import com.ttenushko.androidmvi.demo.domain.utils.Cancellable
-import java.lang.IllegalArgumentException
 import java.util.*
 
 

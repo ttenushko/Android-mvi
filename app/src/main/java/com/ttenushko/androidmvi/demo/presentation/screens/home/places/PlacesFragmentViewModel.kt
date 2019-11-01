@@ -2,23 +2,24 @@ package com.ttenushko.androidmvi.demo.presentation.screens.home.places
 
 import android.os.Bundle
 import com.ttenushko.androidmvi.*
-import com.ttenushko.androidmvi.demo.App
-import com.ttenushko.androidmvi.demo.domain.application.usecase.TrackSavedPlacesUseCaseImpl
+import com.ttenushko.androidmvi.demo.domain.application.usecase.TrackSavedPlacesUseCase
 import com.ttenushko.androidmvi.demo.presentation.screens.home.places.mvi.*
 import com.ttenushko.androidmvi.demo.presentation.screens.home.places.mvi.PlacesStore.*
 import com.ttenushko.androidmvi.demo.presentation.utils.MviLogger
 
-internal class PlacesFragmentStoreCreator :
-    MviStoreCreator<Intention, State, Event> {
+internal class PlacesFragmentViewModel(
+    private val mviLogger: MviLogger<Action, State>,
+    private val trackSavedPlacesUseCase: TrackSavedPlacesUseCase
+) : MviStoreViewModel<Intention, State, Event>() {
 
-    override fun createMviStore(savedState: Bundle?): MviStore<Intention, State, Event> =
+    override fun onCreateMviStore(savedState: Bundle?): MviStore<Intention, State, Event> =
         MviStores.create(
             initialState = State(null, null, false),
             bootstrapper = Bootstrapper(),
             middleware = listOf(
-                LoggingMiddleware(MviLogger("mvi")),
+                LoggingMiddleware(mviLogger),
                 MviPostProcessorMiddleware(listOf(SideEffects())),
-                TrackSavedPlacesMiddleware(TrackSavedPlacesUseCaseImpl(App.instance.applicationSettings))
+                TrackSavedPlacesMiddleware(trackSavedPlacesUseCase)
             ),
             reducer = Reducer(),
             intentToActionTransformer = object : Transformer<Intention, Action> {
@@ -30,10 +31,7 @@ internal class PlacesFragmentStoreCreator :
             }
         )
 
-    override fun saveState(
-        mviStore: MviStore<Intention, State, Event>,
-        outState: Bundle
-    ) {
+    override fun onSaveState(mviStore: MviStore<Intention, State, Event>, outState: Bundle) {
         // do nothing
     }
 }

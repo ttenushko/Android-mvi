@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,13 +12,17 @@ import com.ttenushko.androidmvi.MviStoreViewModel
 import com.ttenushko.androidmvi.demo.R
 import com.ttenushko.androidmvi.demo.domain.weather.model.Place
 import com.ttenushko.androidmvi.demo.presentation.base.BaseMviFragment
+import com.ttenushko.androidmvi.demo.presentation.di.utils.findComponentDependencies
 import com.ttenushko.androidmvi.demo.presentation.screens.home.Router
+import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.di.AddPlaceFragmentModule
+import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.di.DaggerAddPlaceFragmentComponent
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.AddPlaceStore.*
 import com.ttenushko.androidmvi.demo.presentation.screens.home.common.PlaceAdapter
 import com.ttenushko.androidmvi.demo.presentation.utils.MviEventLogger
 import com.ttenushko.androidmvi.demo.presentation.utils.isVisible
 import kotlinx.android.synthetic.main.fragment_add_place.*
 import kotlinx.android.synthetic.main.toolbar_with_search.*
+import javax.inject.Inject
 
 
 class AddPlaceFragment :
@@ -33,8 +36,20 @@ class AddPlaceFragment :
             }
     }
 
-    private val eventLogger = MviEventLogger<Event>("mvi")
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject
+    lateinit var eventLogger: MviEventLogger<Any>
     private var placeAdapter: PlaceAdapter? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        DaggerAddPlaceFragmentComponent.builder()
+            .addPlaceFragmentDependencies(findComponentDependencies())
+            .addPlaceFragmentModule(AddPlaceFragmentModule(arguments!!.getString(ARG_SEARCH)!!))
+            .build()
+            .inject(this)
+        super.onCreate(savedInstanceState)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -120,25 +135,8 @@ class AddPlaceFragment :
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun getMviStoreViewModel(savedState: Bundle?):
-            MviStoreViewModel<Intention, State, Event> {
-        return ViewModelProviders.of(
-            this,
-            MviStoreViewModelProviderFactory(arguments!!.getString(ARG_SEARCH)!!, savedState)
-        ).get(MviStoreViewModel::class.java) as MviStoreViewModel<Intention, State, Event>
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    class MviStoreViewModelProviderFactory(
-        private val search: String,
-        private val savedState: Bundle?
-    ) :
-        ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return MviStoreViewModel(AddPlaceStoreCreator(search), savedState) as T
-        }
-    }
+    override fun getMviStoreViewModel(): MviStoreViewModel<Intention, State, Event> =
+        ViewModelProviders.of(this, viewModelFactory)[AddPlacesFragmentViewModel::class.java]
 
     private val searchTextWatcher = object : SearchView.OnQueryTextListener {
         override fun onQueryTextSubmit(text: String): Boolean {
