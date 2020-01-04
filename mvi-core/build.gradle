@@ -1,6 +1,9 @@
 apply plugin: 'java-library'
 apply plugin: 'kotlin'
 
+archivesBaseName = "mvi-core"
+version = "$MVI_CORE_VERSION_NAME"
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"

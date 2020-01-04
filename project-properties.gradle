@@ -37,7 +37,9 @@ ext {
                     dagger        : 'com.google.dagger:dagger:2.24',
                     daggerCompiler: 'com.google.dagger:dagger-compiler:2.24'
             ]
-
     ]
+
+    MVI_CORE_VERSION_NAME = "0.9.0-SNAPSHOT"
+    MVI_ANDROID_VERSION_NAME = "0.9.0-SNAPSHOT"
 }
 

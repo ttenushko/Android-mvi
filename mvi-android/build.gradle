@@ -2,6 +2,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+archivesBaseName = "mvi-android"
+version = "$MVI_ANDROID_VERSION_NAME"
+
 android {
     compileSdkVersion toolVersions.android.compileSdk
 
@@ -33,4 +36,13 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation project(':mvi-core')
     implementation deps.support.appCompat
+}
+
+android.libraryVariants.all { variant ->
+    variant.outputs.each { output ->
+        if (output.outputFileName != null && output.outputFileName.endsWith('.aar')) {
+            def fileName = "${archivesBaseName}-${version}-${variant.buildType.name}.aar"
+            output.outputFileName = fileName
+        }
+    }
 }
