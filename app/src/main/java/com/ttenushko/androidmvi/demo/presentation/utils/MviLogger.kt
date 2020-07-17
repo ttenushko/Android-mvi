@@ -1,7 +1,7 @@
 package com.ttenushko.androidmvi.demo.presentation.utils
 
 import android.util.Log
-import com.ttenushko.androidmvi.LoggingMiddleware
+import com.ttenushko.mvi.LoggingMiddleware
 import java.text.SimpleDateFormat
 import java.util.*
 

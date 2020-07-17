@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.ttenushko.androidmvi.MviStoreViewModel
 import com.ttenushko.androidmvi.demo.R
 import com.ttenushko.androidmvi.demo.domain.weather.model.Place
 import com.ttenushko.androidmvi.demo.presentation.base.BaseMviFragment
@@ -18,6 +17,7 @@ import com.ttenushko.androidmvi.demo.presentation.screens.home.places.di.DaggerP
 import com.ttenushko.androidmvi.demo.presentation.screens.home.places.mvi.PlacesStore.*
 import com.ttenushko.androidmvi.demo.presentation.utils.MviEventLogger
 import com.ttenushko.androidmvi.demo.presentation.utils.isVisible
+import com.ttenushko.mvi.android.MviStoreViewModel
 import kotlinx.android.synthetic.main.fragment_places.*
 import kotlinx.android.synthetic.main.layout_places_content.*
 import javax.inject.Inject
@@ -27,6 +27,7 @@ class PlacesFragment :
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
+
     @Inject
     lateinit var eventLogger: MviEventLogger<Any>
     private var placeAdapter: PlaceAdapter? = null

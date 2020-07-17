@@ -1,4 +1,4 @@
-package com.ttenushko.androidmvi
+package com.ttenushko.mvi
 
 import java.io.Closeable
 
@@ -7,7 +7,7 @@ interface MviMiddleware<A, S, E> : Closeable {
 
     interface Chain<A, S, E> {
         val action: A
-        val stateProvider: Provider<S>
+        val state: S
         val actionDispatcher: Dispatcher<A>
         val eventDispatcher: Dispatcher<E>
 

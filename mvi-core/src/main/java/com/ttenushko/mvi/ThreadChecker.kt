@@ -1,4 +1,4 @@
-package com.ttenushko.androidmvi
+package com.ttenushko.mvi
 
 internal class ThreadChecker(
     private val requiredThreadId: Long,

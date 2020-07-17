@@ -1,9 +1,9 @@
 package com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi
 
-import com.ttenushko.androidmvi.Dispatcher
-import com.ttenushko.androidmvi.MviBootstrapper
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.AddPlaceStore.Event
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.AddPlaceStore.State
+import com.ttenushko.mvi.Dispatcher
+import com.ttenushko.mvi.MviBootstrapper
 
 internal class Bootstrapper :
     MviBootstrapper<Action, State, Event> {

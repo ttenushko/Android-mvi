@@ -7,7 +7,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import com.squareup.picasso.Picasso
-import com.ttenushko.androidmvi.MviStoreViewModel
 import com.ttenushko.androidmvi.demo.R
 import com.ttenushko.androidmvi.demo.presentation.base.BaseMviFragment
 import com.ttenushko.androidmvi.demo.presentation.base.DefaultErrorHandler
@@ -22,6 +21,7 @@ import com.ttenushko.androidmvi.demo.presentation.utils.MviEventLogger
 import com.ttenushko.androidmvi.demo.presentation.utils.ValueUpdater
 import com.ttenushko.androidmvi.demo.presentation.utils.isDialogShown
 import com.ttenushko.androidmvi.demo.presentation.utils.showDialog
+import com.ttenushko.mvi.android.MviStoreViewModel
 import kotlinx.android.synthetic.main.fragment_place_details.*
 import javax.inject.Inject
 
@@ -40,8 +40,10 @@ class PlaceDetailsFragment :
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
+
     @Inject
     lateinit var picasso: Picasso
+
     @Inject
     lateinit var eventLogger: MviEventLogger<Any>
     private var menuItemDelete: MenuItem? = null

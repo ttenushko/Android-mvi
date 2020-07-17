@@ -20,7 +20,7 @@ internal sealed class Action {
     }
 
     data class Deleted(val result: Either<Throwable, Boolean>) : Action()
-    
+
     object Reload : Action() {
         override fun toString(): String =
             "Reload"

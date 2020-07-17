@@ -8,7 +8,6 @@ import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.ttenushko.androidmvi.MviStoreViewModel
 import com.ttenushko.androidmvi.demo.R
 import com.ttenushko.androidmvi.demo.domain.weather.model.Place
 import com.ttenushko.androidmvi.demo.presentation.base.BaseMviFragment
@@ -20,6 +19,7 @@ import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.AddP
 import com.ttenushko.androidmvi.demo.presentation.screens.home.common.PlaceAdapter
 import com.ttenushko.androidmvi.demo.presentation.utils.MviEventLogger
 import com.ttenushko.androidmvi.demo.presentation.utils.isVisible
+import com.ttenushko.mvi.android.MviStoreViewModel
 import kotlinx.android.synthetic.main.fragment_add_place.*
 import kotlinx.android.synthetic.main.toolbar_with_search.*
 import javax.inject.Inject
@@ -38,6 +38,7 @@ class AddPlaceFragment :
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
+
     @Inject
     lateinit var eventLogger: MviEventLogger<Any>
     private var placeAdapter: PlaceAdapter? = null

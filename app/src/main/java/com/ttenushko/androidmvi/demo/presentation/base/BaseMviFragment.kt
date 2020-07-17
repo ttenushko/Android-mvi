@@ -2,7 +2,7 @@ package com.ttenushko.androidmvi.demo.presentation.base
 
 import android.os.Bundle
 import androidx.lifecycle.Observer
-import com.ttenushko.androidmvi.MviStoreViewModel
+import com.ttenushko.mvi.android.MviStoreViewModel
 
 abstract class BaseMviFragment<I, S, E> : BaseFragment() {
 

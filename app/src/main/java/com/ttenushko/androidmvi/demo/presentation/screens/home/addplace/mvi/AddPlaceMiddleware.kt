@@ -1,15 +1,14 @@
 package com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi
 
-import com.ttenushko.androidmvi.MviMiddleware
-import com.ttenushko.androidmvi.MviMiddlewareImpl
 import com.ttenushko.androidmvi.demo.domain.application.usecase.SavePlaceUseCase
 import com.ttenushko.androidmvi.demo.domain.utils.Either
 import com.ttenushko.androidmvi.demo.domain.weather.model.Place
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.AddPlaceStore.Event
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.AddPlaceStore.State
-import com.ttenushko.androidmvi.demo.presentation.utils.task.SingleResultTask
-import com.ttenushko.androidmvi.demo.presentation.utils.task.asSingleResultJob
-import kotlinx.coroutines.Dispatchers
+import com.ttenushko.androidmvi.demo.presentation.utils.usecase.createExecutor
+import com.ttenushko.androidmvi.demo.presentation.utils.usecase.singleResultUseCaseProvider
+import com.ttenushko.mvi.MviMiddleware
+import com.ttenushko.mvi.MviMiddlewareImpl
 
 internal class AddPlaceMiddleware(
     private val savePlaceUseCase: SavePlaceUseCase
@@ -34,12 +33,8 @@ internal class AddPlaceMiddleware(
     }
 
     private fun createSavePlaceTask() =
-        SingleResultTask<SavePlaceUseCase.Param, SavePlaceUseCase.Result, Unit>(
-            "savePlace",
-            Dispatchers.Main,
-            { param, tag ->
-                savePlaceUseCase.asSingleResultJob(param, tag)
-            },
+        createExecutor<SavePlaceUseCase.Param, SavePlaceUseCase.Result, Unit>(
+            singleResultUseCaseProvider { _, _ -> savePlaceUseCase },
             { result, _ ->
                 actionDispatcher.dispatch(
                     Action.PlaceSaved(

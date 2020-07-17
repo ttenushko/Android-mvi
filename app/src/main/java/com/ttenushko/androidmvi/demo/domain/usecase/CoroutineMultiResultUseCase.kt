@@ -28,12 +28,16 @@ abstract class CoroutineMultiResultUseCase<P : Any, R : Any>(
                     callback.onResult(result)
                 }
             }
-            coroutineScope.async {
-                try {
+            coroutineScope.launch {
+                val notifyComplete = try {
                     run(param, actor)
-                    callback.onComplete()
+                    true
                 } catch (error: Throwable) {
                     callback.onError(error)
+                    false
+                }
+                if (notifyComplete) {
+                    callback.onComplete()
                 }
             }
             coroutineScope.asCancellable()

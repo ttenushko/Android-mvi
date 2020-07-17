@@ -1,12 +1,11 @@
 package com.ttenushko.androidmvi.demo.presentation.screens.home.places.mvi
 
-import com.ttenushko.androidmvi.MviMiddleware
-import com.ttenushko.androidmvi.MviMiddlewareImpl
 import com.ttenushko.androidmvi.demo.domain.application.usecase.TrackSavedPlacesUseCase
 import com.ttenushko.androidmvi.demo.domain.utils.Either
-import com.ttenushko.androidmvi.demo.presentation.utils.task.MultiResultTask
-import com.ttenushko.androidmvi.demo.presentation.utils.task.asMultiResultJob
-import kotlinx.coroutines.Dispatchers
+import com.ttenushko.androidmvi.demo.presentation.utils.usecase.createExecutor
+import com.ttenushko.androidmvi.demo.presentation.utils.usecase.multiResultUseCaseProvider
+import com.ttenushko.mvi.MviMiddleware
+import com.ttenushko.mvi.MviMiddlewareImpl
 
 internal class TrackSavedPlacesMiddleware(
     private val trackSavedPlacesUseCase: TrackSavedPlacesUseCase
@@ -32,12 +31,10 @@ internal class TrackSavedPlacesMiddleware(
     }
 
     private fun createTrackSavedPlacesTask() =
-        MultiResultTask<TrackSavedPlacesUseCase.Param, TrackSavedPlacesUseCase.Result, Unit>(
-            "trackSavedPlaces",
-            Dispatchers.Main,
-            { param, tag ->
+        createExecutor<TrackSavedPlacesUseCase.Param, TrackSavedPlacesUseCase.Result, Unit>(
+            multiResultUseCaseProvider { _, _ ->
                 actionDispatcher.dispatch(Action.LoadingSavedPlaces)
-                trackSavedPlacesUseCase.asMultiResultJob(param, tag)
+                trackSavedPlacesUseCase
             },
             { result, _ ->
                 actionDispatcher.dispatch(Action.SavedPlacesUpdated(Either.Right(result.places)))

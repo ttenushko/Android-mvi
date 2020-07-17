@@ -1,4 +1,4 @@
-package com.ttenushko.androidmvi
+package com.ttenushko.mvi.android
 
 import java.util.*
 

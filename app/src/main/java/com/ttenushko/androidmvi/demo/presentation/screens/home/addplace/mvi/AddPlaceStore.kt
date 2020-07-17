@@ -2,9 +2,9 @@ package com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi
 
 import au.com.console.kassava.kotlinEquals
 import au.com.console.kassava.kotlinToString
-import com.ttenushko.androidmvi.MviStore
 import com.ttenushko.androidmvi.demo.domain.weather.model.Place
 import com.ttenushko.androidmvi.demo.presentation.screens.home.Router
+import com.ttenushko.mvi.MviStore
 import java.util.*
 
 interface AddPlaceStore :

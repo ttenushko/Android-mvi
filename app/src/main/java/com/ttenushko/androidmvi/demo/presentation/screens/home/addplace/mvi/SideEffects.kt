@@ -1,10 +1,10 @@
 package com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi
 
-import com.ttenushko.androidmvi.Dispatcher
-import com.ttenushko.androidmvi.MviPostProcessorMiddleware
 import com.ttenushko.androidmvi.demo.presentation.screens.home.Router
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.AddPlaceStore.Event
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.AddPlaceStore.State
+import com.ttenushko.mvi.Dispatcher
+import com.ttenushko.mvi.MviPostProcessorMiddleware
 
 internal class SideEffects : MviPostProcessorMiddleware.PostProcessor<Action, State, Event> {
     override fun process(

@@ -11,5 +11,8 @@ interface OpenWeatherMapApi {
     fun find(@Query(value = "q") query: String): Call<NetFindResponse>
 
     @GET("weather")
-    fun getWeather(@Query(value = "id") placeId: Long, @Query(value = "units") units: String = "metric"): Call<NetWeather>
+    fun getWeather(
+        @Query(value = "id") placeId: Long,
+        @Query(value = "units") units: String = "metric"
+    ): Call<NetWeather>
 }

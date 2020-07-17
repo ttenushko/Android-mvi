@@ -1,11 +1,11 @@
-package com.ttenushko.androidmvi.demo.presentation.utils.task
+package com.ttenushko.mvi
 
 
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 internal class ValueQueueDrain<T>(private val consumer: (T) -> Unit) {
-    private val queue: Queue<T> = LinkedList<T>()
+    private val queue: Queue<T> = LinkedList()
     private val wip = AtomicInteger()
 
     fun drain(value: T) {

@@ -1,8 +1,8 @@
 package com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi
 
 
-import com.ttenushko.androidmvi.MviReducer
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.AddPlaceStore.State
+import com.ttenushko.mvi.MviReducer
 
 internal class Reducer : MviReducer<Action, State> {
     override fun reduce(

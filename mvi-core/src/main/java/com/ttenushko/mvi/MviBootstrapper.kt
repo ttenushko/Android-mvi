@@ -1,4 +1,4 @@
-package com.ttenushko.androidmvi
+package com.ttenushko.mvi
 
 
 interface MviBootstrapper<A, S, E> {

@@ -1,15 +1,21 @@
-package com.ttenushko.androidmvi
+package com.ttenushko.mvi
 
+import java.io.Closeable
 import java.util.concurrent.atomic.AtomicLong
 
-internal class MviMiddlewareChain<A, S, E>(middlewares: List<MviMiddleware<A, S, E>>) {
+internal class MviMiddlewareChain<A, S, E>(
+    middleware: List<MviMiddleware<A, S, E>>
+) : Closeable {
 
     private var sequence = AtomicLong(0)
     private val chainData = SettableChainData<A, S, E>()
     private val chain: ChainItem<A, S, E> =
-        middlewares.foldRight(null as ChainItem<A, S, E>?) { middleware, nextChainItem ->
+        middleware.foldRight(null as ChainItem<A, S, E>?) { middleware, nextChainItem ->
             ChainItem(middleware, chainData, nextChainItem)
         }!!
+    private val closeHandler = CloseHandler {
+        chain.close()
+    }
 
     fun apply(
         action: A,
@@ -17,6 +23,7 @@ internal class MviMiddlewareChain<A, S, E>(middlewares: List<MviMiddleware<A, S,
         actionDispatcher: Dispatcher<A>,
         eventDispatcher: Dispatcher<E>
     ) {
+        closeHandler.checkNotClosed()
         chainData.set(
             action,
             stateProvider,
@@ -28,16 +35,20 @@ internal class MviMiddlewareChain<A, S, E>(middlewares: List<MviMiddleware<A, S,
         chainData.clear()
     }
 
+    override fun close() {
+        closeHandler.close()
+    }
+
     private class ChainItem<A, S, E>(
         private val middleware: MviMiddleware<A, S, E>,
         private val chainData: ChainData<A, S, E>,
         private val next: ChainItem<A, S, E>?
-    ) : MviMiddleware.Chain<A, S, E> {
+    ) : MviMiddleware.Chain<A, S, E>, Closeable {
 
         override val action: A
             get() = chainData.action
-        override val stateProvider: Provider<S>
-            get() = chainData.stateProvider
+        override val state: S
+            get() = chainData.stateProvider.get()
         override val actionDispatcher: Dispatcher<A>
             get() = chainData.actionDispatcher
         override val eventDispatcher: Dispatcher<E>
@@ -55,9 +66,15 @@ internal class MviMiddlewareChain<A, S, E>(middlewares: List<MviMiddleware<A, S,
                 middleware.apply(this)
             } else throw IllegalStateException("MviMiddleware.apply() is called multiple times in a row")
         }
+
+        override fun close() {
+            middleware.close()
+            next?.close()
+        }
     }
 
-    private class SettableChainData<A, S, E> : ChainData<A, S, E> {
+    private class SettableChainData<A, S, E> :
+        ChainData<A, S, E> {
         private var _action: A? = null
         private var _stateProvider: Provider<S>? = null
         private var _actionDispatcher: Dispatcher<A>? = null

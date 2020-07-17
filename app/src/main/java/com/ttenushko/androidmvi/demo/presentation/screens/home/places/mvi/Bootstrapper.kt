@@ -1,7 +1,7 @@
 package com.ttenushko.androidmvi.demo.presentation.screens.home.places.mvi
 
-import com.ttenushko.androidmvi.Dispatcher
-import com.ttenushko.androidmvi.MviBootstrapper
+import com.ttenushko.mvi.Dispatcher
+import com.ttenushko.mvi.MviBootstrapper
 
 internal class Bootstrapper :
     MviBootstrapper<Action, PlacesStore.State, PlacesStore.Event> {

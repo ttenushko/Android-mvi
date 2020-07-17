@@ -1,8 +1,8 @@
 package com.ttenushko.androidmvi.demo.presentation.screens.home.placedetails.mvi
 
-import com.ttenushko.androidmvi.MviStore
 import com.ttenushko.androidmvi.demo.domain.weather.model.Weather
 import com.ttenushko.androidmvi.demo.presentation.screens.home.Router
+import com.ttenushko.mvi.MviStore
 
 interface PlaceDetailsStore :
     MviStore<PlaceDetailsStore.Intention, PlaceDetailsStore.State, PlaceDetailsStore.Event> {

@@ -1,14 +1,13 @@
 package com.ttenushko.androidmvi.demo.presentation.screens.home.placedetails.mvi
 
-import com.ttenushko.androidmvi.MviMiddleware
-import com.ttenushko.androidmvi.MviMiddlewareImpl
 import com.ttenushko.androidmvi.demo.domain.application.usecase.DeletePlaceUseCase
 import com.ttenushko.androidmvi.demo.domain.utils.Either
 import com.ttenushko.androidmvi.demo.presentation.screens.home.placedetails.mvi.PlaceDetailsStore.Event
 import com.ttenushko.androidmvi.demo.presentation.screens.home.placedetails.mvi.PlaceDetailsStore.State
-import com.ttenushko.androidmvi.demo.presentation.utils.task.SingleResultTask
-import com.ttenushko.androidmvi.demo.presentation.utils.task.asSingleResultJob
-import kotlinx.coroutines.Dispatchers
+import com.ttenushko.androidmvi.demo.presentation.utils.usecase.createExecutor
+import com.ttenushko.androidmvi.demo.presentation.utils.usecase.singleResultUseCaseProvider
+import com.ttenushko.mvi.MviMiddleware
+import com.ttenushko.mvi.MviMiddlewareImpl
 
 internal class DeletePlaceMiddleware(
     private val deletePlaceUseCase: DeletePlaceUseCase
@@ -22,7 +21,7 @@ internal class DeletePlaceMiddleware(
             is Action.Delete -> {
                 if (!taskDeletePlace.isRunning) {
                     taskDeletePlace.start(
-                        DeletePlaceUseCase.Param(chain.stateProvider.get().placeId),
+                        DeletePlaceUseCase.Param(chain.state.placeId),
                         Unit
                     )
                 }
@@ -36,12 +35,10 @@ internal class DeletePlaceMiddleware(
     }
 
     private fun createDeletePlaceTask() =
-        SingleResultTask<DeletePlaceUseCase.Param, DeletePlaceUseCase.Result, Unit>(
-            "deletingPlace",
-            Dispatchers.Main,
-            { param, tag ->
+        createExecutor<DeletePlaceUseCase.Param, DeletePlaceUseCase.Result, Unit>(
+            singleResultUseCaseProvider { _, _ ->
                 actionDispatcher.dispatch(Action.Deleting)
-                deletePlaceUseCase.asSingleResultJob(param, tag)
+                deletePlaceUseCase
             },
             { result, _ ->
                 actionDispatcher.dispatch(Action.Deleted(Either.Right(result.isDeleted)))

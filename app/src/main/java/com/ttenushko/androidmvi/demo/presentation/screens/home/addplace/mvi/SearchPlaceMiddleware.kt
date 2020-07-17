@@ -1,14 +1,13 @@
 package com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi
 
-import com.ttenushko.androidmvi.MviMiddleware
-import com.ttenushko.androidmvi.MviMiddlewareImpl
 import com.ttenushko.androidmvi.demo.domain.utils.ObservableValue
 import com.ttenushko.androidmvi.demo.domain.weather.usecase.SearchPlaceUseCase
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.AddPlaceStore.Event
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.mvi.AddPlaceStore.State
-import com.ttenushko.androidmvi.demo.presentation.utils.task.MultiResultTask
-import com.ttenushko.androidmvi.demo.presentation.utils.task.asMultiResultJob
-import kotlinx.coroutines.Dispatchers
+import com.ttenushko.androidmvi.demo.presentation.utils.usecase.createExecutor
+import com.ttenushko.androidmvi.demo.presentation.utils.usecase.multiResultUseCaseProvider
+import com.ttenushko.mvi.MviMiddleware
+import com.ttenushko.mvi.MviMiddlewareImpl
 
 internal class SearchPlaceMiddleware(
     private val searchPlaceUseCase: SearchPlaceUseCase
@@ -38,12 +37,8 @@ internal class SearchPlaceMiddleware(
     }
 
     private fun createSearchPlaceTask() =
-        MultiResultTask<SearchPlaceUseCase.Param, SearchPlaceUseCase.Result, Unit>(
-            "searchPlace",
-            Dispatchers.Main,
-            { param, tag ->
-                searchPlaceUseCase.asMultiResultJob(param, tag)
-            },
+        createExecutor<SearchPlaceUseCase.Param, SearchPlaceUseCase.Result, Unit>(
+            multiResultUseCaseProvider { _, _ -> searchPlaceUseCase },
             { result, _ ->
                 when (result) {
                     is SearchPlaceUseCase.Result.Success -> {

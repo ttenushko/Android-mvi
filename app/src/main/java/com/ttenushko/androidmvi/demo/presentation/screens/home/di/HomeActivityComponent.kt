@@ -1,10 +1,10 @@
 package com.ttenushko.androidmvi.demo.presentation.screens.home.di
 
 import com.ttenushko.androidmvi.demo.di.ApplicationDependencies
-import com.ttenushko.androidmvi.demo.di.module.UseCaseModule
-import com.ttenushko.androidmvi.demo.presentation.di.annotation.ActivityScope
 import com.ttenushko.androidmvi.demo.di.dependency.ComponentDependencies
 import com.ttenushko.androidmvi.demo.di.dependency.ComponentDependenciesKey
+import com.ttenushko.androidmvi.demo.di.module.UseCaseModule
+import com.ttenushko.androidmvi.demo.presentation.di.annotation.ActivityScope
 import com.ttenushko.androidmvi.demo.presentation.screens.home.HomeActivity
 import com.ttenushko.androidmvi.demo.presentation.screens.home.addplace.di.AddPlaceFragmentDependencies
 import com.ttenushko.androidmvi.demo.presentation.screens.home.placedetails.di.PlaceDetailsFragmentDependencies

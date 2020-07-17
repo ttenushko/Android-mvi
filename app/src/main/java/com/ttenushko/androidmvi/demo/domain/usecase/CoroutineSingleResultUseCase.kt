@@ -16,14 +16,20 @@ abstract class CoroutineSingleResultUseCase<P : Any, R : Any>(
     }
 
     @Suppress("DeferredResultUnused")
-    final override fun execute(param: P, callback: SingleResultUseCase.Callback<R>): Cancellable =
+    final override fun execute(
+        param: P,
+        callback: SingleResultUseCase.Callback<R>
+    ): Cancellable =
         createCoroutineScope(defaultDispatcher).let { coroutineScope ->
-            coroutineScope.async {
-                try {
-                    val result = run(param)
-                    callback.onComplete(result)
+            coroutineScope.launch {
+                val result = try {
+                    run(param)
                 } catch (error: Throwable) {
                     callback.onError(error)
+                    null
+                }
+                if (null != result) {
+                    callback.onComplete(result)
                 }
             }
             coroutineScope.asCancellable()

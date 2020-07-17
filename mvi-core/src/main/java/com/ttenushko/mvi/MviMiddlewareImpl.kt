@@ -1,24 +1,20 @@
-package com.ttenushko.androidmvi
+package com.ttenushko.mvi
 
-import java.util.concurrent.atomic.AtomicBoolean
+abstract class MviMiddlewareImpl<A, S, E> :
+    MviMiddleware<A, S, E> {
 
-abstract class MviMiddlewareImpl<A, S, E> : MviMiddleware<A, S, E> {
-
-    private lateinit var _stateProvider: Provider<S>
     private lateinit var _actionDispatcher: Dispatcher<A>
     private lateinit var _eventDispatcher: Dispatcher<E>
-    protected val stateProvider: Provider<S>
-        get() = _stateProvider
     protected val actionDispatcher: Dispatcher<A>
         get() = _actionDispatcher
     protected val eventDispatcher: Dispatcher<E>
         get() = _eventDispatcher
-    private val isClosed = AtomicBoolean(false)
+    private val closeHandler = CloseHandler {
+        onClose()
+    }
 
     override fun apply(chain: MviMiddleware.Chain<A, S, E>) {
-        if (!::_stateProvider.isInitialized || _stateProvider != chain.stateProvider) {
-            _stateProvider = chain.stateProvider
-        }
+        closeHandler.checkNotClosed()
         if (!::_actionDispatcher.isInitialized || _actionDispatcher != chain.actionDispatcher) {
             _actionDispatcher = chain.actionDispatcher
         }
@@ -28,9 +24,7 @@ abstract class MviMiddlewareImpl<A, S, E> : MviMiddleware<A, S, E> {
     }
 
     override fun close() {
-        if (isClosed.compareAndSet(false, true)) {
-            onClose()
-        }
+        closeHandler.close()
     }
 
     protected abstract fun onClose()

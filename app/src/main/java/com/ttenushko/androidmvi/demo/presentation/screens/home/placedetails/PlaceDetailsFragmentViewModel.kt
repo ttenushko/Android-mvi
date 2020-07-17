@@ -1,12 +1,13 @@
 package com.ttenushko.androidmvi.demo.presentation.screens.home.placedetails
 
 import android.os.Bundle
-import com.ttenushko.androidmvi.*
 import com.ttenushko.androidmvi.demo.domain.application.usecase.DeletePlaceUseCase
 import com.ttenushko.androidmvi.demo.domain.weather.usecase.GetCurrentWeatherConditionsUseCase
 import com.ttenushko.androidmvi.demo.presentation.screens.home.placedetails.mvi.*
 import com.ttenushko.androidmvi.demo.presentation.screens.home.placedetails.mvi.PlaceDetailsStore.*
 import com.ttenushko.androidmvi.demo.presentation.utils.MviLogger
+import com.ttenushko.mvi.*
+import com.ttenushko.mvi.android.MviStoreViewModel
 
 internal class PlaceDetailsFragmentViewModel(
     private val mviLogger: MviLogger<Action, State>,
@@ -26,9 +27,10 @@ internal class PlaceDetailsFragmentViewModel(
                 DeletePlaceMiddleware(deletePlaceUseCase)
             ),
             reducer = Reducer(),
-            intentToActionTransformer = object : Transformer<Intention, Action> {
-                override fun transform(input: Intention): Action =
-                    when (input) {
+            intentToActionIntentToActionConverter = object :
+                IntentToActionConverter<Intention, Action> {
+                override fun convert(intent: Intention): Action =
+                    when (intent) {
                         is Intention.DeleteClicked -> Action.DeleteClicked
                         is Intention.DeleteConfirmed -> Action.Delete
                         is Intention.Refresh -> Action.Reload
