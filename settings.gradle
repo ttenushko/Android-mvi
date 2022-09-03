@@ -1,2 +1,3 @@
-include ':app', ':mvi-core', ':mvi-android'
 rootProject.name='MVI Demo'
+include ':mvi-core', ':mvi-android', ':mvi-android-compose', ':demo', ':demo-compose'
+include ':demo-common'

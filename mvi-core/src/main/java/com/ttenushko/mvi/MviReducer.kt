@@ -1,5 +1,5 @@
 package com.ttenushko.mvi
 
-interface MviReducer<A, S> {
-    fun reduce(action: A, state: S): S
+public fun interface MviReducer<A, S, E> {
+    public fun reduce(action: A, State: S, dispatchEvent: Dispatcher<E>): S
 }

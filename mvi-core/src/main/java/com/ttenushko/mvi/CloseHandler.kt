@@ -3,6 +3,7 @@ package com.ttenushko.mvi
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 
+
 internal class CloseHandler(val closeHandler: () -> Unit) : Closeable {
 
     val isClosed: Boolean

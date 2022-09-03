@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">MVI Demo</string>
+
+    <!-- places -->
+    <string name="places_title">Places</string>
+
+    <!-- add place -->
+    <string name="add_place_title">Add Place</string>
+    <string name="add_place_search_hint">Type place here…</string>
+    <string name="add_place_search_prompt">Start typing text to search</string>
+    <string name="add_place_no_results_prompt">Nothing found.</string>
+    <string name="add_place_error_prompt">Error occurred.</string>
+
+    <!-- place details -->
+    <string name="place_details_temp_min">Min</string>
+    <string name="place_details_temp_max">Max</string>
+    <string name="place_details_humidity">Humidity</string>
+
+    <!-- misc -->
+    <string name="error_title">Error</string>
+    <string name="error_internet_connection_message">"Internet connection unavailable."</string>
+    <string name="error_generic_message">"Error occurred."</string>
+    <string name="delete_confirmation_message">Are you sure to remove this place?</string>
+
+    <!-- errors -->
+    <string name="error_unknown">Error occurred.</string>
+
+</resources>

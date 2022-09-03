@@ -1,0 +1,79 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+}
+
+def openWeatherMapProperties = loadProperties(project.rootProject.file('open_weather_map.properties'))
+def OPEN_WEATHER_MAP_API_KEY = openWeatherMapProperties.getProperty("open_weather_map_api_key", ">> Type your OpenWeatherMap API key here <<")
+def OPEN_WEATHER_MAP_API_BASE_URL = openWeatherMapProperties.getProperty("open_weather_map_api_base_url", ">> Type OpenWeatherMap API base URL here <<")
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId "com.ttenushko.androidmvi.demo"
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+android.applicationVariants.all { variant ->
+    variant.buildConfigField "String", "OPEN_WEATHER_MAP_API_KEY", "\"${OPEN_WEATHER_MAP_API_KEY}\""
+    variant.buildConfigField "String", "OPEN_WEATHER_MAP_API_BASE_URL", "\"${OPEN_WEATHER_MAP_API_BASE_URL}\""
+}
+
+dependencies {
+    implementation project(':mvi-core')
+    implementation project(':mvi-android')
+    implementation project(':demo-common')
+    implementation deps.androidx.core
+    implementation deps.androidx.appCompat
+    implementation deps.androidx.lifecycleRuntime
+    implementation deps.androidx.navigationFragment
+    implementation deps.androidx.navigationUi
+    implementation deps.androidx.swipeRefreshLayout
+    implementation deps.google.material
+    implementation deps.kotlinx.coroutines
+    implementation deps.kotlinx.coroutinesAndroid
+    implementation deps.dagger2.dagger
+    implementation deps.picasso
+
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    kapt deps.dagger2.daggerCompiler
+}
+
+static def loadProperties(File file) {
+    Properties properties = new Properties()
+    try {
+        properties.load(file.newDataInputStream())
+    } catch (ignore) {
+
+    }
+    return properties
+}

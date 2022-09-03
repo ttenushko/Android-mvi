@@ -1,85 +1,102 @@
 package com.ttenushko.mvi
 
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.consumeAsFlow
 import java.util.concurrent.CopyOnWriteArraySet
+import java.util.concurrent.atomic.AtomicBoolean
 
-@Suppress("SpellCheckingInspection")
+
 internal class MviStoreImpl<I, A, S, E>(
     initialState: S,
-    private val intentToActionConverter: IntentToActionConverter<I, A>? = null,
+    private val intentToActionConverter: ((I) -> A?)? = null,
     private val bootstrapper: MviBootstrapper<A, S, E>? = null,
     middleware: Collection<MviMiddleware<A, S, E>>? = null,
-    reducer: MviReducer<A, S>
+    reducer: MviReducer<A, S, E>,
+    coroutineDispatcher: CoroutineDispatcher
 ) : MviStore<I, S, E> {
 
-    companion object {
-        private const val STATUS_IDLE = 0
-        private const val STATUS_RUNNING = 1
-        private const val STATUS_CLOSED = 2
-    }
+    override val isRunning: Boolean
+        get() {
+            return synchronized(internalStateLock) {
+                !closeHandler.isClosed && InternalState.Running == internalState
+            }
+        }
+
+    override val isClosed: Boolean
+        get() {
+            return closeHandler.isClosed
+        }
 
     @Volatile
     override var state: S = initialState
-    private val middlewareChain: MviMiddlewareChain<A, S, E>
-    private val stateChangedListeners =
-        CopyOnWriteArraySet<MviStore.StateChangedListener<S>>()
-    private val eventListeners =
-        CopyOnWriteArraySet<MviStore.EventListener<E>>()
-    private val messageQueueDrain: ValueQueueDrain<Message<A, E>> =
-        ValueQueueDrain { message ->
-            when (message) {
-                is Message.Bootstrap -> processBootstrap()
-                is Message.Action<A> -> processAction(message.value)
-                is Message.Event<E> -> processEvent(message.value)
-                is Message.Close -> processClose()
-            }
+    private val internalStateLock = Any()
+    private var internalState: InternalState = InternalState.Idle
+    private val coroutineScope = CoroutineScope(coroutineDispatcher + Job())
+    private val messageChannel = Channel<Message<A, E>>(capacity = Channel.UNLIMITED)
+    private val provideState: Provider<S> = { state }
+    private val dispatchAction: Dispatcher<A> = { action -> sendMessage(Message.Action(action)) }
+    private val dispatchEvent: Dispatcher<E> = { event -> sendMessage(Message.Event(event)) }
+    private val middlewareChain: MviMiddlewareChain<A, S, E> =
+        ReducerMiddleware(reducer, ::updateState).let { reducerMiddleware ->
+            MviMiddlewareChain(
+                middleware = middleware?.plus(reducerMiddleware) ?: listOf(reducerMiddleware),
+                provideState = provideState,
+                dispatchAction = dispatchAction,
+                dispatchEvent = dispatchEvent
+            )
         }
-    private val actionDispatcher = object : Dispatcher<A> {
-        override fun dispatch(value: A) {
-            messageQueueDrain.drain(Message.Action(value))
-        }
-    }
-    private val eventDispatcher = object : Dispatcher<E> {
-        override fun dispatch(value: E) {
-            messageQueueDrain.drain(Message.Event(value))
-        }
-    }
-    private val stateProvider = object : Provider<S> {
-        override fun get(): S {
-            return state
-        }
-    }
-
-    @Volatile
-    private var status = STATUS_IDLE
+    private val stateChangedListeners = CopyOnWriteArraySet<MviStore.StateChangedListener>()
+    private val eventListeners = CopyOnWriteArraySet<MviStore.EventListener<E>>()
     private val closeHandler = CloseHandler {
-        messageQueueDrain.drain(Message.Close)
-    }
-
-
-    init {
-        val reducerMiddleware = ReducerMiddleware(reducer) { updateState(it) }
-        middlewareChain =
-            MviMiddlewareChain(middleware?.plus(reducerMiddleware) ?: listOf(reducerMiddleware))
+        coroutineScope.cancel()
     }
 
     override fun run() {
-        closeHandler.checkNotClosed()
-        messageQueueDrain.drain(Message.Bootstrap)
+        synchronized(internalStateLock) {
+            closeHandler.checkNotClosed()
+            when (internalState) {
+                InternalState.Idle -> {
+                    coroutineScope.launch {
+                        val bootstrapperCalled = AtomicBoolean(false)
+                        messageChannel.consumeAsFlow().collect { message ->
+                            processMessage(message, bootstrapperCalled)
+                        }
+                    }.also { job ->
+                        job.invokeOnCompletion {
+                            middlewareChain.close()
+                            messageChannel.close()
+                        }
+                    }
+                    internalState = InternalState.Running
+                }
+                InternalState.Running -> throw IllegalStateException("This instance is already running. No need to call 'run()' multiple times.")
+            }
+        }.also {
+            sendMessage(Message.Bootstrap)
+        }
     }
 
     override fun dispatchIntent(intent: I) {
-        closeHandler.checkNotClosed()
-        if (null != intentToActionConverter) {
-            actionDispatcher.dispatch(intentToActionConverter.convert(intent))
-        } else noIntentToActionConverter()
+        synchronized(internalStateLock) {
+            closeHandler.checkNotClosed()
+            when (internalState) {
+                InternalState.Idle -> throw IllegalStateException("This instance is not running yet. Call 'run()' first.")
+                InternalState.Running -> Unit
+            }
+        }.also {
+            intentToActionConverter?.invoke(intent)?.let { action ->
+                sendMessage(Message.Action(action))
+            }
+        }
     }
 
-    override fun addStateChangedListener(listener: MviStore.StateChangedListener<S>) {
+    override fun addStateChangedListener(listener: MviStore.StateChangedListener) {
         closeHandler.checkNotClosed()
         stateChangedListeners.add(listener)
     }
 
-    override fun removeStateChangedListener(listener: MviStore.StateChangedListener<S>) {
+    override fun removeStateChangedListener(listener: MviStore.StateChangedListener) {
         stateChangedListeners.remove(listener)
     }
 
@@ -96,108 +113,54 @@ internal class MviStoreImpl<I, A, S, E>(
         closeHandler.close()
     }
 
-    private fun processBootstrap() {
-        when (status) {
-            STATUS_IDLE -> {
-                try {
-                    bootstrapper?.bootstrap(state, actionDispatcher, eventDispatcher)
-                } catch (error: Throwable) {
-                    throw RuntimeException("Error occurred while bootstrap.", error)
-                }
-                status = STATUS_RUNNING
-            }
-            STATUS_RUNNING -> alreadyRunning()
-            STATUS_CLOSED -> instanceClosed()
+    private fun processMessage(message: Message<A, E>, bootstrapperCalled: AtomicBoolean) {
+        if (bootstrapperCalled.compareAndSet(false, true)) {
+            bootstrapper?.bootstrap(state, dispatchAction, dispatchEvent)
         }
-    }
-
-    private fun processAction(action: A) {
-        when (status) {
-            STATUS_IDLE -> notRunning()
-            STATUS_RUNNING -> {
-                try {
-                    middlewareChain.apply(action, stateProvider, actionDispatcher, eventDispatcher)
-                } catch (error: Throwable) {
-                    throw RuntimeException("Error occurred while processing action.", error)
-                }
+        when (message) {
+            is Message.Bootstrap -> {
+                /* do nothing since bootstrapper must be called above */
             }
-            STATUS_CLOSED -> instanceClosed()
-        }
-    }
-
-    private fun processEvent(event: E) {
-        when (status) {
-            STATUS_IDLE -> notRunning()
-            STATUS_RUNNING -> {
-                eventListeners.forEach { eventListener ->
-                    try {
-                        eventListener.onEvent(event)
-                    } catch (error: Throwable) {
-                        throw RuntimeException("Error occurred while handling event.", error)
-                    }
-                }
+            is Message.Action<A> -> {
+                middlewareChain.apply(message.value)
             }
-            STATUS_CLOSED -> instanceClosed()
-        }
-    }
-
-    private fun processClose() {
-        when (status) {
-            STATUS_IDLE, STATUS_RUNNING -> {
-                middlewareChain.close()
-                status = STATUS_CLOSED
+            is Message.Event<E> -> {
+                eventListeners.forEach { it.onEvent(message.value) }
             }
-            STATUS_CLOSED -> instanceClosed()
         }
     }
 
     private fun updateState(newState: S) {
-        if (newState != this.state) {
-            this.state = newState
-            stateChangedListeners.forEach { stateChangedListener ->
-                try {
-                    stateChangedListener.onStateChanged(newState)
-                } catch (error: Throwable) {
-                    throw RuntimeException("Error occured while updating state.", error)
-                }
-            }
+        if (newState != state) {
+            state = newState
+            stateChangedListeners.forEach { it.onStateChanged() }
         }
     }
 
-    private fun noIntentToActionConverter(): Nothing =
-        throw IllegalStateException("Intent to action converter is not provided.")
+    private fun sendMessage(message: Message<A, E>) {
+        messageChannel.trySend(message)
+    }
 
-    private fun notRunning(): Nothing =
-        throw IllegalStateException("This instance is not running yet. Call 'run()' first.")
-
-    private fun alreadyRunning(): Nothing =
-        throw IllegalStateException("This instance is already running. No need to call 'run()' multiple times.")
-
-    private fun instanceClosed(): Nothing =
-        throw IllegalStateException("This instance is closed.")
-
-    private inner class ReducerMiddleware(
-        private val reducer: MviReducer<A, S>,
+    private class ReducerMiddleware<A, S, E>(
+        private val reducer: MviReducer<A, S, E>,
         private val updateState: (S) -> Unit
-    ) : MviMiddleware<A, S, E> {
+    ) : MviMiddlewareImpl<A, S, E>() {
+        override fun onApply(action: A, chain: MviMiddleware.Chain) {
+            updateState(reducer.reduce(action, state, dispatchEvent))
+        }
 
-        private val closeHandler = CloseHandler {
+        override fun onClose() {
             // do nothing
         }
+    }
 
-        override fun apply(chain: MviMiddleware.Chain<A, S, E>) {
-            closeHandler.checkNotClosed()
-            updateState(reducer.reduce(chain.action, chain.state))
-        }
-
-        override fun close() {
-            closeHandler.close()
-        }
+    private sealed class InternalState {
+        object Idle : InternalState()
+        object Running : InternalState()
     }
 
     private sealed class Message<out A, out E> {
         object Bootstrap : Message<Nothing, Nothing>()
-        object Close : Message<Nothing, Nothing>()
         class Action<A>(val value: A) : Message<A, Nothing>()
         class Event<E>(val value: E) : Message<Nothing, E>()
     }

@@ -1,38 +1,54 @@
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+}
 
 archivesBaseName = "mvi-android"
 version = "$MVI_ANDROID_VERSION_NAME"
 
 android {
-    compileSdkVersion toolVersions.android.compileSdk
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion toolVersions.android.minSdk
-        targetSdkVersion toolVersions.android.targetSdk
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
     }
-
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+        useIR = true
+        freeCompilerArgs += '-Xexplicit-api=strict'
+    }
+    buildFeatures {
+        compose true
+        viewBinding true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion compose_version
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation project(':mvi-core')
-    implementation deps.support.appCompat
-    implementation deps.support.viewModelKtx
+    implementation deps.kotlinx.coroutines
+    implementation deps.androidx.appCompat
+    implementation deps.androidx.viewModel
+    implementation deps.compose.foundation
+    implementation deps.compose.runtime
+    implementation deps.compose.viewModel
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.1'

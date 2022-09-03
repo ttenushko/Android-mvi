@@ -1,0 +1,65 @@
+ext {
+    deps = [
+            androidx   : [
+                    core               : 'androidx.core:core-ktx:1.6.0',
+                    appCompat          : 'androidx.appcompat:appcompat:1.3.1',
+                    lifecycle          : 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0',
+                    lifecycleRuntime   : 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.0',
+                    viewModel          : 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1',
+                    viewModelSavedState: 'androidx.lifecycle:lifecycle-viewmodel-savedstate:2.5.1',
+                    constraintLayout   : 'androidx.constraintlayout:constraintlayout:1.1.3',
+                    navigationFragment : 'androidx.navigation:navigation-fragment-ktx:2.3.4',
+                    navigationUi       : 'androidx.navigation:navigation-ui-ktx:2.3.4',
+                    cardView           : 'androidx.cardview:cardview:1.0.0',
+                    fragment           : 'androidx.fragment:fragment-ktx:1.3.1',
+                    swipeRefreshLayout : 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+            ],
+            compose    : [
+                    ui                   : 'androidx.compose.ui:ui:1.0.5',
+                    uiTooling            : 'androidx.compose.ui:ui-tooling:1.0.5',
+                    uiToolingPreview     : 'androidx.compose.ui:ui-tooling-preview:1.0.5',
+                    foundation           : 'androidx.compose.foundation:foundation:1.0.5',
+                    material             : 'androidx.compose.material:material:1.0.5',
+                    materialIcons        : 'androidx.compose.material:material-icons-core:1.0.5',
+                    materialIconsExtended: 'androidx.compose.material:material-icons-extended:1.0.5',
+                    activity             : 'androidx.activity:activity-compose:1.4.0',
+                    viewModel            : 'androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0',
+                    liveData             : 'androidx.compose.runtime:runtime-livedata:1.0.3',
+                    runtime              : 'androidx.compose.runtime:runtime:1.0.3',
+                    navigation           : 'androidx.navigation:navigation-compose:2.4.0-alpha09'
+            ],
+            accompanist: [
+                    navigation        : 'com.google.accompanist:accompanist-navigation-animation:0.18.0',
+                    swipeRefresh      : 'com.google.accompanist:accompanist-swiperefresh:0.18.0',
+                    systemUiController: 'com.google.accompanist:accompanist-systemuicontroller:0.18.0'
+            ],
+            google     : [
+                    material: 'com.google.android.material:material:1.4.0'
+            ],
+            okHttp     : [
+                    okHttp            : 'com.squareup.okhttp3:okhttp:4.9.0',
+                    loggingInterceptor: 'com.squareup.okhttp3:logging-interceptor:4.9.0',
+            ],
+            retrofit   : [
+                    retrofit     : 'com.squareup.retrofit2:retrofit:2.8.1',
+                    converterGson: 'com.squareup.retrofit2:converter-gson:2.8.1'
+            ],
+            gson       : 'com.google.code.gson:gson:2.8.2',
+            rxJava     : 'io.reactivex.rxjava2:rxjava:2.2.2',
+            kassava    : 'au.com.console:kassava:1.0.0',
+            picasso    : 'com.squareup.picasso:picasso:2.71828',
+            coil       : [
+                    coil   : 'io.coil-kt:coil:1.3.2',
+                    compose: 'io.coil-kt:coil-compose:1.3.2'
+            ],
+            dagger2    : [
+                    dagger        : 'com.google.dagger:dagger:2.34',
+                    daggerCompiler: 'com.google.dagger:dagger-compiler:2.34'
+            ],
+            kotlinx    : [
+                    coroutines       : 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1',
+                    coroutinesAndroid: 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1'
+            ]
+    ]
+}
+
