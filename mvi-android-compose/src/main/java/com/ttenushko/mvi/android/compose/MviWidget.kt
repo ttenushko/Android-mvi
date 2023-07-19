@@ -35,7 +35,10 @@ public abstract class MviWidget<I, S, E> : Widget {
             if (!mviStore.isRunning) {
                 mviStore.run()
             }
+            onActive(mviStore::dispatchIntent)
+            
             onDispose {
+                onInactive(mviStore::dispatchIntent)
                 mviStore.removeEventListener(eventListener)
                 mviStore.removeStateChangedListener(stateChangedListener)
             }
@@ -49,6 +52,10 @@ public abstract class MviWidget<I, S, E> : Widget {
         events: ReceiveChannel<E>,
         dispatchIntent: (I) -> Unit,
     )
+
+    protected open fun onActive(dispatchIntent: (I) -> Unit) {}
+
+    protected open fun onInactive(dispatchIntent: (I) -> Unit) {}
 
     protected abstract fun onCreateMviStore(savedState: Map<String, Any>?): MviStore<I, S, E>
 
