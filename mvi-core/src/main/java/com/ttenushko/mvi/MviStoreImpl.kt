@@ -1,8 +1,12 @@
 package com.ttenushko.mvi
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.launch
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -49,7 +53,7 @@ internal class MviStoreImpl<I, A, S, E>(
     private val stateChangedListeners = CopyOnWriteArraySet<MviStore.StateChangedListener>()
     private val eventListeners = CopyOnWriteArraySet<MviStore.EventListener<E>>()
     private val closeHandler = CloseHandler {
-        coroutineScope.cancel()
+        messageChannel.trySend(Message.Terminate)
     }
 
     override fun run() {
@@ -70,6 +74,7 @@ internal class MviStoreImpl<I, A, S, E>(
                     }
                     internalState = InternalState.Running
                 }
+
                 InternalState.Running -> throw IllegalStateException("This instance is already running. No need to call 'run()' multiple times.")
             }
         }.also {
@@ -118,12 +123,18 @@ internal class MviStoreImpl<I, A, S, E>(
             bootstrapper?.bootstrap(state, dispatchAction, dispatchEvent)
         }
         when (message) {
+            is Message.Terminate -> {
+                coroutineScope.cancel()
+            }
+
             is Message.Bootstrap -> {
                 /* do nothing since bootstrapper must be called above */
             }
+
             is Message.Action<A> -> {
                 middlewareChain.apply(message.value)
             }
+
             is Message.Event<E> -> {
                 eventListeners.forEach { it.onEvent(message.value) }
             }
@@ -160,6 +171,7 @@ internal class MviStoreImpl<I, A, S, E>(
     }
 
     private sealed class Message<out A, out E> {
+        object Terminate : Message<Nothing, Nothing>()
         object Bootstrap : Message<Nothing, Nothing>()
         class Action<A>(val value: A) : Message<A, Nothing>()
         class Event<E>(val value: E) : Message<Nothing, E>()
