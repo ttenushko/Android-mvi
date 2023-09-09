@@ -26,11 +26,17 @@ public abstract class MviScreen<I, S, E>(
         DisposableEffect(viewModel.mviStore, viewModel.state, viewModel.events, lifecycle) {
             val lifecycleObserver = LifecycleEventObserver { _, event ->
                 when (event) {
+                    Lifecycle.Event.ON_CREATE -> {
+                        onActive(viewModel.mviStore::dispatchIntent)
+                    }
                     Lifecycle.Event.ON_START -> {
                         onVisible(viewModel.mviStore::dispatchIntent)
                     }
                     Lifecycle.Event.ON_STOP -> {
                         onInvisible(viewModel.mviStore::dispatchIntent)
+                    }
+                    Lifecycle.Event.ON_DESTROY -> {
+                        onInactive(viewModel.mviStore::dispatchIntent)
                     }
                     else -> {
                         // ignore
@@ -40,12 +46,10 @@ public abstract class MviScreen<I, S, E>(
             if (!viewModel.mviStore.isRunning) {
                 viewModel.mviStore.run()
             }
-            onActive(viewModel.mviStore::dispatchIntent)
             lifecycle.addObserver(lifecycleObserver)
 
             onDispose {
                 lifecycle.removeObserver(lifecycleObserver)
-                onInactive(viewModel.mviStore::dispatchIntent)
             }
         }
         Render(
